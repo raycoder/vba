@@ -1,0 +1,67 @@
+## abrir multiuples paginas web 
+Sub hp()
+chrome = "C:\Program Files (x86)\Google\Chrome\Application\chrome.exe"
+For i = 241 To 270
+    URL = ActiveSheet.Cells(i, 2).Text
+    shelltext = chrome & " -url " & URL
+    Shell shelltext
+Next
+End Sub
+
+
+## crear una tarea en outlook
+Sub crear_tarea()
+Dim OLApp As Outlook.Application
+Dim OLTk As Outlook.TaskItem
+Dim ASGN As Outlook.Recipient
+
+Set OLApp = New Outlook.Application
+With CreateObject("Outlook.Application").CreateItem(3)
+        .Assign
+        Set ASGN = .Recipients.Add("Alejandro Izzo")
+        ASGN.Resolve
+            If ASGN.Resolved Then
+                .Subject = "texto de prueba"
+                .StartDate = Now
+                .DueDate = Now + 20
+                .ReminderSet = True
+                .ReminderTime = .DueDate - 3 + TimeValue("8:30AM")
+                .Body = "texto del cuerpo de prueba"
+                .Save
+            End If
+End With
+End Sub
+
+## extrae y convierte fechas
+Function Extractdate(rango As Range, spec As Range)
+Use regular expressions
+Dim texto As String
+ texto = rango.Value
+ Dim text2 As String
+ text2 = spec.Value
+
+Dim result As String
+Dim allMatches As Object
+Dim RE As Object
+Set RE = CreateObject("vbscript.regexp")
+If Left(texto, 11) = "spec needed" Then
+
+        RE.Pattern = "\d{1,2}-[a-zA-Z]{3}-\d{2,4}"
+        RE.Global = True
+        RE.IgnoreCase = True
+        Set allMatches = RE.Execute(texto)
+        result = 0
+        If allMatches.Count <> 0 Then
+            result = allMatches.Item(0)
+        End If
+        If IsDate(result) Then
+             Extractdate = CDate(result)
+           Else
+             Extractdate = "No date found"
+        End If
+  Else
+        Extractdate = "Not prioritized"
+        
+End If
+If text2 = "Yes" Then Extractdate = "Spec received"
+End Function
