@@ -1,6 +1,7 @@
 
 ===== 7 Simple Practices for Writing Super-Readable VBA Code ====
 https://www.youtube.com/watch?v=QGFANQ4lPMA
+https://excelmacromastery.com/vba-articles/
 
 1# declarar variables
 	Option Explicit
@@ -13,10 +14,25 @@ y hacer un debug compile para chequear que no falten variables
 4# convernciones de nombres
 
 5# para declarar constantes o variables con valores usar bloques Enum
-    Enum DataCol
-      a=1
-      b=2
-      c=3
-    End Enum
-
+	Enum DataCol
+		a=1
+		b=2
+		c=3
+	End Enum
+	Sub....
 6# 
+
+Shortcut
+
+Useful VBA Shortcut Keys:
+Tab: To move lines of code to the right(Indent).
+Shift + Tab: To move lines of code to the left(Outdent).
+Shift + F2: Get the definition of the item under the cursor.
+Ctrl + Shift + F2: Go to the last cursor position.
+Ctrl + Space: AutoComplete Word.
+Alt + F11: Switch between Excel and the VBA Editor.
+Ctrl + R: View the Project Explorer Window.
+Ctrl + Shift + 8(or Ctrl + *): Get the current region on a worksheet.
+F4: View the Properties Window.
+F5: Run the code from the current sub.
+F9(or click left margin): Add a breakpoint to pause the code.
