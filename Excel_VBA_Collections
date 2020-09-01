@@ -1,0 +1,180 @@
+Excel VBA Collections: How to use Collections (1/5)
+https://www.youtube.com/watch?v=tg7Vrlxh_RQ
+==============================================
+Sobre cuando elegir un array, un dict o  una collection
+https://stackoverflow.com/questions/32479842/comparison-of-dictionary-collections-and-arrays
+http://www.vbaccelerator.com/home/VB/Code/Techniques/A_Fast_Index-Based_Object_Collection/article.asp
+http://www.cpearson.com/excel/CollectionsAndDictionaries.htm
+
+Collections
+VBA includes a collection object that you can use to create and manipulate your own custom collections.
+A collection is a special type of object that represents a group of objects.
+A Collection object is an ordered set of items that can be referred to as a unit.
+You can think of a collection as an array and refer to items using their index numbers or, items can be referred to by using their actual name.
+A collection is an object that contains a group of related objects.
+A collection class is a VBA class that defines a Private Collection object and implements methods to add, remove, retrieve and count objects in the collections.
+
+Why use a Collection ?
+The Collection object provides a convenient way to refer to a related group of items as a single object.
+The concept of a collection makes it easy to work with all related objects at once.
+The items, or members, in a collection need only be related by the fact that they exist in the collection.
+Members of a collection don't have to share the same data type.
+
+What can a Collection contain ?
+Basically anything. Variables, fields, object references and even other collection objects
+When you create an object for an application you may find that the relationship between two objects is one-to-many.
+
+The Collection object and the Dictionary object are very useful for storing groups of related data. 
+All else being equal, I use a Dictionary object rather than a Collection object because you have access 
+(read, write, change) to the Key property associated with an Item in the Dictionary. In a rather poor 
+object design, the Key of an item in a Collection is write-only. You can assign a Key to an Item when 
+ou add the Item to the Collection, but you cannot retrieve the Key associated with an Item nor can you 
+determine (directly) whether a key exists in a Collection. Dictionaries are much friendly and open with 
+their keys. Dictionaries are also considerably faster than Collections.
+
+Ventajas de collection: no se necesita especificar el tamaño, no hay que hacer un redim
+se puede insertar un objeto en cualquier posicion, mientras que en un array habria que mover todos los datos
+
+# forma 1 de crear
+Dim coll as New Collection
+# forma 2 de crear
+Dim coll as Collection
+Set coll = new Collection
+
+# add
+coll.add "apple"
+coll.add "orange"
+coll.add "pear", after:=1 'para ponerlo en 2
+coll.add "pear", before:=3 'para ponerlo en 3
+
+# contar items
+coll.count
+
+# remove
+coll.remove 1
+
+==============================================
+Excel VBA Collections: How to use for loops with collections (2/5)
+https://www.youtube.com/watch?v=NSP8usCrcvs
+==============================================
+
+# forma 1
+dim item as variant 'tiene que ser variant, porque el collection puede contener cualquier tipo de dato
+for each item in coll
+  debug.print item
+next item
+
+# forma 2
+dim i as long
+for i = 1 to coll.count
+  debug.print coll(i)
+next i
+
+la forma 1 es mucho mejor y mas eficiente, el unico problema es que se obtienen siempre los items ordenados
+en cambio con la forma 2, se puede traer cualquier orden de items (p.e. desde atras). ademas puede
+
+for i = coll.count to 1 step -1
+  debug.print coll(i)
+next i
+
+==============================================
+Excel VBA Collections: How to use sheest with collections (3/5)
+https://www.youtube.com/watch?v=qzrrcs4164c
+==============================================
+
+Dim coll as new collection
+
+dim rg as range
+set rg=sheets1.range("A1").CurrentRegion
+
+dim i as long
+for i = 2 to rg.rows.count '2 para no leer la cabecera
+  if rg.cells(i,2).value > 70 then
+    coll.add rg.cells(i,2).value
+next i
+
+sub printcoll(coll as collection)
+..
+end sub
+
+## cuando se lee mas de una columna hay que usar clases!
+
+==============================================
+Excel VBA Collections: Collections vs Arrays (4/5)
+https://www.youtube.com/watch?v=QyXGyEVQl1I
+==============================================
+
+# para leer una tabla de datos y ponerlo e un array:
+Dim arr as Variant
+arr=sheet1.range("A1").CurrentRegion.value
+sheet1.range("E2").value = arr
+
+# si queremos crear una lista filtrar, con array lo que hay que hacer es redimensionar el array todo el tiempo
+
+Dim i as long, row as long
+row = 1
+For i = 1 to rg.rows.count
+  if rg.cells(i,3).value= "US" then
+    Redim Preserve arr(1 to row)
+    arr(row) = rg.cells(i,1).value
+    row=row+1
+  end if
+ next i
+ 
+ # en el array no se pueden agregar items en el medio o para hacerlo hay que escribir un programa que desplace
+ todo el contenido
+ 
+ # NO SE PUEDEN ACTUALIZAR DATOS EN UN COLL - solo borrar y crear
+ 
+==============================================
+Excel VBA Collections: Classes y collections (5/5)
+https://www.youtube.com/watch?v=1MW_uxF7fsY
+============================================== 
+
+# para leer varios campos usar una clase y collections
+
+Dim coll as new Collection
+
+Dim rg as Range, customer as clsCustomer
+set rg = sheet1.range("A1").CUrrentRegion
+
+Dim i as Long
+for i = 2 to rg.rows.count
+  if rg.cells(i,3).value = "Australia" then
+    set customer = new clsCustomer
+    customer.Firstname = rg.cells(i,1).value
+    customer.Lasttname = rg.cells(i,2).value
+    customer.Country = rg.cells(i,1).value
+    coll.add customer #ojo esta linea
+   end if
+next i 
+
+Dim customerOut as clsCustomer
+For i = 1 to coll.count
+  set customerOut = coll(i)
+  sheet1.cells(i, "H").value = customerOut.FirstName
+  sheet1.cells(i, "H").value = customerOut.LasttName
+  sheet1.cells(i, "H").value = customerOut.Country
+next i
+
+
+
+# para crear una clase hay que crear un modulo de clase
+# cambiar el nombre de la clase en las propiedades (clsCustomer)
+# el codigo de la clase seria:
+
+Public FirstName as string
+Public LastName as string
+Public Country as string
+
+
+
+
+
+
+
+
+
+
+
+
