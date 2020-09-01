@@ -20,7 +20,9 @@ y hacer un debug compile para chequear que no falten variables
 		c=3
 	End Enum
 	Sub....
-6# 
+6# Use variables instead of ranges. 
+
+7# Do not repeat code => use function or sub
 
 Shortcut
 
