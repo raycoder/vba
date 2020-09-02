@@ -1,0 +1,8 @@
+How to make your Excel VBA code run 1000 times faster
+https://www.youtube.com/watch?v=GCSF5tq7pZ0
+======================================================
+
+Application.Calculation = xlCalculationManual
+Application.Screenupdating = False
+Application.EnableEvents = False
+
