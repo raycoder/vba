@@ -1,0 +1,214 @@
+How to Code and Optimize an Excel VBA application from Scratch
+https://www.youtube.com/watch?v=88mdPrl6FKU
+=================================================================
+
+Lee una tabla en una posicion, la filtra y armar un reporte de salida en otra celda
+
+# modulo: modReportOptimised
+
+Sub MainOptimised()
+
+    ' Turn of calculations etc
+    Dim oExcel As New clsExcelSettings
+    oExcel.TurnOff
+    
+    ' Get the start time
+    Dim currentTime As Double
+    currentTime = MicroTimer
+
+    ' Read the criteria
+    Dim oCriteria As clsCriteria
+    Set oCriteria = ReadCriteria
+    
+    ' Read the data and apply criteria
+    Dim result As Variant
+    ReDim result(1 To oCriteria.Total, 1 To 2)
+    result = ReadData(result, oCriteria.dict)
+
+    ' Write out the result
+    Call WriteResult(result)
+    
+    ' Display the result in the Intermediate Window and Message box
+    Debug.Print (MicroTimer - currentTime) * 1000
+    MsgBox "Optimised: " & (MicroTimer - currentTime) * 1000
+        
+    oExcel.TurnOn
+    
+End Sub
+
+' https://ExcelMacroMastery.com
+Private Function ReadCriteria() As clsCriteria
+
+    ' Create the new criteria object
+    Dim oCriteria As New clsCriteria
+    
+    ' Get the range
+    Dim arr As Variant
+    arr = shFruit.Cells(arCriteriaHeader, acCriteriaHeader).CurrentRegion
+    
+    ' Read through the criteria data
+    Dim i As Long, fruit As String, max As Long
+    For i = LBound(arr, 1) + 1 To UBound(arr, 1)
+        fruit = arr(i, ccFruit)
+        max = arr(i, ccMax)
+        
+        ' Add fruit to the dictionary
+        oCriteria.dict.Add fruit, max
+        
+        ' Update the running total
+        oCriteria.Total = oCriteria.Total + max
+    Next i
+    
+    ' return the criteria object
+    Set ReadCriteria = oCriteria
+
+End Function
+
+' https://ExcelMacroMastery.com
+Private Function ReadData(result As Variant, dict As Dictionary) As Variant
+    
+    ' Copy the data to an array
+    Dim arr As Variant
+    arr = shFruit.Cells(arInputHeader, acInputHeader).CurrentRegion.Value
+    
+    ' Read through the data in the array
+    Dim i As Long, fruit As String, rowResult As Long
+    For i = LBound(arr, 1) + 1 To UBound(arr, 1)
+        fruit = arr(i, 1)
+        ' Check if the current fruit exists in the dictionary
+        If dict.Exists(fruit) = True Then
+            ' if max value greater the zero then add to array
+            If dict(fruit) > 0 Then
+                
+                ' Update the row in the new array
+                rowResult = rowResult + 1
+                
+                ' Add the data to the array
+                AddArrayRow result, rowResult, arr, i
+                
+                ' Remove one from the max value in the dictionary
+                dict(fruit) = dict(fruit) - 1
+            End If
+        End If
+    Next i
+    
+    ' Return the resulting array
+    ReadData = result
+    
+End Function
+
+' https://ExcelMacroMastery.com
+Private Function WriteResult(result As Variant)
+
+    ' Clear the header
+    shFruit.Cells(arOutputHeader, acOutputHeader).CurrentRegion.Offset(1).ClearContents
+    
+    ' Write the array to the worksheet
+    shFruit.Cells(arOutputStart, acOutputHeader).Resize(UBound(result, 1), UBound(result, 2)).Value = result
+
+End Function
+
+' https://ExcelMacroMastery.com
+Public Sub AddArrayRow(result As Variant, resultRow As Long, arr As Variant, row As Long)
+
+    ' Copy the current row in the data array to the current row in the result array
+    Dim j As Long
+    For j = LBound(arr, 2) To UBound(arr, 2)
+        result(resultRow, j) = arr(row, j)
+    Next j
+ 
+End Sub
+
+# Modulo: modConstants
+
+Enum AppRows
+    arInputHeader = 3
+    arCriteriaCount = 1
+    arCriteriaHeader = 3
+    arOutputHeader = 3
+    arOutputStart = 4
+End Enum
+
+Enum AppColumns
+    acInputHeader = 1
+    acCriteriaHeader = 6
+    acCriteriaCount = 7
+    acOutputHeader = 10
+End Enum
+
+Enum InputColumns
+    icFruit = 1
+    icTotal
+End Enum
+
+Enum CriteriaColumns
+    ccFruit = 1
+    ccMax
+End Enum
+
+# clase: clsCriteria
+
+Public dict As New Dictionary
+Public Total As Long
+
+# clase: clsExcelSettings
+
+Private calculation As XlCalculation
+Private displayStatus As Boolean
+Private enableEvents As Boolean
+Private screenUpdating As Boolean
+
+' Procedure : TurnOffFunctionality
+' Purpose   : Backup Current settings
+' https://excelmacromastery.com/
+Public Sub Backup()
+    calculation = Application.calculation
+    displayStatus = Application.DisplayStatusBar
+    enableEvents = Application.enableEvents
+    screenUpdating = Application.screenUpdating
+End Sub
+
+' Procedure : TurnOffFunctionality
+' Purpose   : Backup Current settings
+' https://excelmacromastery.com/
+Public Sub Restore()
+    Application.calculation = calculation
+    Application.DisplayStatusBar = displayStatus
+    Application.enableEvents = enableEvents
+    Application.screenUpdating = screenUpdating
+End Sub
+
+' Purpose   : Turn off automatic calculations, events and screen updating
+' https://excelmacromastery.com/
+Public Sub TurnOff(Optional BackupSettings As Boolean = True)
+
+    If BackupSettings Then
+        Call Backup
+    End If
+    
+    Application.calculation = xlCalculationManual
+    Application.DisplayStatusBar = False
+    Application.enableEvents = False
+    Application.screenUpdating = False
+    
+End Sub
+
+' Purpose   : turn on automatic calculations, events and screen updating
+' https://excelmacromastery.com/
+Public Sub TurnOn(Optional RestorePrevious As Boolean = True)
+
+    If RestorePrevious = True Then
+        ' restore from backup
+        Call Restore
+    Else
+        ' turn on
+        Application.calculation = xlCalculationAutomatic
+        Application.DisplayStatusBar = True
+        Application.enableEvents = True
+        Application.screenUpdating = True
+    End If
+    
+End Sub
+
+
+
