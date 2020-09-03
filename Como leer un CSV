@@ -1,0 +1,24 @@
+Public Function getData(fileName As String) As ADODB.Recordset
+
+    Dim path As String
+    path = "C:\testDir\"
+    Dim cN As ADODB.Connection
+    Dim RS As ADODB.Recordset
+    Set cN = new ADODB.Connection
+    Set RS = new ADODB.Recordset
+    cN.Open ("Provider=Microsoft.Jet.OLEDB.4.0;" & _
+                   "Data Source=" & path & ";" & _
+                   "Extended Properties=""text; HDR=Yes; FMT=Delimited; IMEX=1;""")
+    RS.ActiveConnection = cN
+    RS.Source = "select * from " & fileName
+    Set getData = RS
+
+End Function
+
+Now, the function can be called as
+
+Dim a As ADODB.Recordset
+Set a = getData("testFile.csv")
+a.Open
+MsgBox(a.GetString())
+a.Close
