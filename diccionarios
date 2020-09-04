@@ -1,0 +1,8 @@
+Dim ap_leve_1 As New Collection, ap_level_2 As New Collection
+https://www.youtube.com/watch?v=PrGchDgF3m4
+==============================================================
+cargar libreria: Microsoft Scripting Runtime
+
+Dim dict as New Dictionary
+
+
