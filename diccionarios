@@ -1,8 +1,67 @@
+==============================================================
 Dim ap_leve_1 As New Collection, ap_level_2 As New Collection
 https://www.youtube.com/watch?v=PrGchDgF3m4
 ==============================================================
-cargar libreria: Microsoft Scripting Runtime
+!!!! cargar libreria: Microsoft Scripting Runtime
 
 Dim dict as New Dictionary
+dict.add "apple", 60
+dict.add "orange", 70
+
+# no se pueden cargar dos veces
+
+if dict.exists("apple") then
+  dict("apple") = 40
+else
+  dict.add "apple", 60
+end if
+
+una forma alternativa de hacer lo mismo en una linea:
+
+dict("apple")=40 'si existe cambia el valor, de lo contrario lo agrega y asigna
+
+==============================================================
+Excel VBA Dictionary vs Collection (2/4)
+https://www.youtube.com/watch?v=eAu9ePz1tgM
+==============================================================
+
+Dim coll as New Collection
+Dim dict as new Dictionary
+
+dict.add "apple", 56
+coll.add 56, "apple"
+
+# la clave es unica y es lo importante, mientras que en un collection lo importante es la posicion
+# en un diccionario se puede evaluar si una clave existe, en una coll no
+# para chequear si un elemento existe en una coleccion se hace por error
+# lo mas importante en las coll es que no se puede cambiar un valor asignado
+# pero la coleccion se puede acceder a un item por posicion y por eso la lista se puede editar
+# en que posicion esta cada elemento
+
+
+==============================================================
+A Real-World VBA Dictionary Example (3/4)
+https://www.youtube.com/watch?v=o8fSY_4p93s
+==============================================================
+
+
+
+
+
+
+==============================================================
+Excel VBA Dictionary vs Collection (2/4)
+https://www.youtube.com/watch?v=eAu9ePz1tgM
+==============================================================
+
+
+
+
+
+
+
+
+
+
 
 
