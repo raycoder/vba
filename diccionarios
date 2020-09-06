@@ -44,16 +44,110 @@ A Real-World VBA Dictionary Example (3/4)
 https://www.youtube.com/watch?v=o8fSY_4p93s
 ==============================================================
 
+sub dict_main()
 
+dim dict as dictionary
 
+'lee los datos y crea el dict
+set dic = readata()
 
+'escribe el resumen
+call writeDict()
+
+end sub
+
+private function readata() as new dictionary
+Dim dict as new dictionary
+
+dim rg as range
+set rg = sheets1.range("A1").currentregion.value
+
+dim i as long, customerID as string, amount as currency, volume as long
+for i = 2 to rg.rows.count
+  customerID=rg(i,1).value
+  amount=rg(i,4).value
+  volume=rg(i,5).value
+  
+  if dict.exists(customerID) = true then
+    set oCustomer = dict(customerID)
+  else
+    set oCustomer? new clsCustomer
+    dict.add customerId, oCustomer
+  end if
+  
+  oCustomer.amount = oCustomer.amount + amount
+  oCustomer.volume = oCustomer.volume + volume
+  
+next i
+set readata = dict
+end function
+
+sub writeDict (dict as Dictionary)
+  
+  dim rgout as range
+  set rgout= shdata.range("B2").currentregion
+  rgout.offset(1).clearcontents
+    
+  Dim key as variant, oCustomer as clsCustomer, row as long
+  row = 2
+    
+  for each key in dict
+    set oCustomer = dict(key)
+    rgout.cells(row,1).value=key
+    rgout.cells(row,2).value=oCustomer.amount
+    rgout.cells(row,3).value=oCustomer.volume
+    row=row+1
+  next key 
+
+end sub
+
+module class: clsCustomer
+
+Public customerID as String
+Public Name as string
+Public surname as string
+Public amount as currency
+Public volume as long
 
 
 ==============================================================
-Excel VBA Dictionary vs Collection (2/4)
-https://www.youtube.com/watch?v=eAu9ePz1tgM
+How to Compare 2 Lists using Excel VBA(4/4)
+https://www.youtube.com/watch?v=P_UVvYW2xto
 ==============================================================
 
+Public Enum eResultType
+  list1only=1
+  both=2
+  list2Only=3
+end enum
+
+sub maincompare()
+
+  dim resultType as eResultType
+  resultType = eResultType.both
+
+  Dim rgBase as Range, rgCompare as range, rgResult as range
+  set rgBase = shData.Range("A1:A9")
+  set rgCompare = shData.Range("B2:B9")
+  set rgResult = shData.Range("D1")
+  
+  dim dictBase as dictionary
+  set dictBase = readList(rgBase.value)
+
+end sub
+
+public function ReadList(arr as variant) as Dictionary
+  
+  Dim dict as new dictionary
+  
+  dim i as long
+    for i = lBound(arr) to ubound(arr)
+    dict(arr(i,1))=0
+  next i  
+  
+  set ReadList=dict
+
+end function
 
 
 
