@@ -134,22 +134,57 @@ sub maincompare()
   dim dictBase as dictionary
   set dictBase = readList(rgBase.value)
 
+  dim dictResult as dictionary
+  set dictResult= CompareList(dictBase, rgCompare.value, resulType)
+  
+  printDictionary dictResults
+
+end sub
+
+Sub PrintDictionary(dic as dictionary)
+  
+  Dim key as Variant
+  for each key in dict
+    debug.print key ', dict(key)
+  next key
+
 end sub
 
 public function ReadList(arr as variant) as Dictionary
-  
   Dim dict as new dictionary
   
   dim i as long
-    for i = lBound(arr) to ubound(arr)
-    dict(arr(i,1))=0
+  for i = lBound(arr) to ubound(arr)
+    dict(arr(i,1))=0 'igual a cero porque solo esta buscando las claves, no importa el valor
   next i  
   
   set ReadList=dict
-
 end function
 
+public function CompareList(dict as dictionary, arr as variant, resulType as eResultType) as Dictionary
+  Dim dictResult as new dictionary
+  Dim i as long, item as variant
+  for i= lbound(arr) to ubound(arr)
+    item=arr(i,1)
+    if dict.exists(item)=true then
+      dictResult(item)=0
+      dict.Remove item
+    end if
+  next i
+  
+  if resultType=both then
+    set compareLists=dicResult
+  elseif resultType = list1Only then
+    set CompareLists=dict
+  end if
+  
+end function
 
+Sub WriteResult(rg as Range, dict as dictionary, resultType as eResultType)
+  rg.currentregion.clearcontents
+  rg.value = "Result"
+  rg.offset(1).resize(dict.count,1).value=worksheetFunction.Transpose(dict.Keys)
+end sub
 
 
 
