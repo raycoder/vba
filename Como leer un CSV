@@ -30,3 +30,42 @@ Dim mFormula As String
 mFormula = _
 "let Source = Csv.Document(File.Contents(""C:\data.txt""),null,""#(tab)"",null,1252) in Source"
 query1 = ActiveWorkbook.Queries.Add("query1", mFormula)
+
+=====================================================================
+chequear si existe un file antes
+https://stackoverflow.com/questions/16351249/vba-check-if-file-exists/33771924
+=====================================================================
+
+Dim strFile As String
+Dim WB As Workbook
+strFile = Trim(TextBox1.Value)
+Dim DirFile As String
+If Len(strFile) = 0 Then Exit Sub
+
+DirFile = "C:\Documents and Settings\Administrator\Desktop\" & strFile
+If Len(Dir(DirFile)) = 0 Then
+  MsgBox "File does not exist"
+Else
+ On Error Resume Next
+ Set WB = Workbooks.Open(DirFile)
+ On Error GoTo 0
+ If WB Is Nothing Then MsgBox DirFile & " is invalid", vbCritical
+End If
+
+opcion 2
+
+Function IsFile(ByVal fName As String) As Boolean
+'Returns TRUE if the provided name points to an existing file.
+'Returns FALSE if not existing, or if it's a folder
+    On Error Resume Next
+    IsFile = ((GetAttr(fName) And vbDirectory) <> vbDirectory)
+End Function
+
+opcion 3
+
+Public Function IsFile(s)
+    IsFile = CreateObject("Scripting.FileSystemObject").FileExists(s)
+End Function
+
+
+
