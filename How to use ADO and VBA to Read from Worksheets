@@ -1,0 +1,58 @@
+How to use ADO and VBA to Read from Worksheets
+https://www.youtube.com/watch?v=L0I24NGrUtc
+===============================================================
+
+Sub UseADO()
+  Dim cn as new ADODB.connection
+  cn.Open "Provider =Microsoft.ACE.OLEDB.12.0;Data Source=" & ruta & "SE16N-PRPS-WBS.XLSX" & ";" & "Extended Properties=""Excel 12.0 Xml;HDR=YES"";"
+  
+  dim query as string
+  query = "Select * from [Sheet1] where Fruit='apple'"
+    
+  Dim rs as new ADODB.recordset
+  rs.open query, cn
+  
+  'para escribir las cabeceras en la hoja
+  dim i as long
+  for i = 0 to rs.fields.count - 1
+    sheet1.cells(1,i+1).value2=rs.fields(1).Name
+  next i
+  
+  Sheet1.range("a2").Copyfromrecorset rs
+  
+  'si quisiera insertar datos - tiene que tener la cabecera primero
+  'ojo que los valores los pega como texto
+  query2 = "Inserto into [Sheet2$] Select * from [Sheet1$] where Fruit='apple'"
+  cn.execute query
+  
+  cn.close
+
+end sub
+
+Ver: https://www.connectionstrings.com/
+Connection string para texto delimitado Provider=Microsoft.Jet.OLEDB.4.0;Data Source=c:\txtFilesFolder\;Extended Properties="text;HDR=Yes;FMT=Delimited";
+
+COmo pasar un recordset a un array
+Dim rst As ADODB.Recordset
+Dim vDat As Variant
+
+Set rst = CurrentProject.Connection.Execute("select * from tblTemp4")
+vDat = rst.GetRows
+
+Otro ejemplo (propio)
+
+Sub t()
+    Dim cn As New ADODB.Connection
+    Dim ruta As String
+    ruta = "C:\Users\alejandro.izzo.GLOBAL\OneDrive - AES Corporation\Documentos\40 - Herramientas\Ariba P2P\PR Approval logic\Macro\Incrementals\"
+    If CreateObject("Scripting.FileSystemObject").FileExists(ruta & "SE16N-PRPS-WBS.XLSX") Then
+        Dim wbs_new As Dictionary, sql As String
+        cn.Open "Provider =Microsoft.ACE.OLEDB.12.0;Data Source=" & ruta & "SE16N-PRPS-WBS.XLSX" & ";" & "Extended Properties=""Excel 12.0 Xml;HDR=YES"";"
+        sql = "SELECT * FROM [Sheet1$]"
+        Dim rs As New ADODB.Recordset
+        rs.Open sql, cn
+        Dim arr As Variant
+        arr = rs.GetRows
+    End If
+End Sub
+
