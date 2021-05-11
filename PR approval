@@ -1,0 +1,274 @@
+Option Explicit
+
+'v10 cambio en tipos para la funcion de lectura de archivos
+'v11 cambio el separador de ";" a ","
+'v12 crear sub para escribir los archivos
+'v13 determinacion del amount field y borrar grupos
+'v21 - cambio a full load
+'v22 - cambio WO a 10 caract y agregado linea para asset, duplicado de WBS
+'v23  - cambio del texto Tooltipo para reducir el tamanño del archivo
+'v24 - se agrega codigo para completar los niveles mas bajo de aprobacion y control de errores
+'v25 - formateo de ceros en cecos
+    ' linea 57 en adelante:
+    ' prev: If Len(Replace(arr(i)(7), " ", vbNullString)) > 0 Then app_l07(Replace(arr(i)(0), " ", vbNullString)) = Replace(arr(i)(7), " ", vbNullString)
+    ' new: If Len(Replace(arr(i)(6), " ", vbNullString)) > 0 Then app_l06(Format(Replace(arr(i)(0), " ", vbNullString), "0000000000")) = Replace(arr(i)(6), " ", vbNullString)
+
+Sub Main()
+
+On Error GoTo err
+Dim pr As Integer
+pr = 2
+Dim sh As Worksheet
+Set sh = Sheets(1)
+sh.Range("A:A").ClearContents
+
+sh.Cells(pr, 1) = "inicio de corrida - " & Now()
+pr = pr + 1
+'liberar recursos")
+   'Call TurnOff
+    
+'leer aprobadores y armar diccionarios")
+    
+    'leer archivo de aprobadores
+    sh.Cells(pr, 1) = "leer aprobadores - " & Now()
+    pr = pr + 1
+    Dim ruta As String, arr As Variant, archivo As String, i As Long
+    ruta = Application.ActiveWorkbook.path & "\"
+    archivo = "zglmmsolped.txt"
+    arr = read_file(ruta, archivo, 3, 4)
+    
+    'completa la matriz de aprobadores con para primeros niveles
+    sh.Cells(pr, 1) = "completar matriz - " & Now()
+    pr = pr + 1
+    Dim r, c As Integer
+    For r = 2 To UBound(arr) - 1
+        For c = 6 To 1 Step -1
+            If arr(r)(c) = "" Then arr(r)(c) = arr(r)(c + 1)
+        Next c
+    Next r
+    
+    'carga los diccionarios con los aprobadores de cada nivel
+    sh.Cells(pr, 1) = "carga dic aprobadores - " & Now()
+    pr = pr + 1
+    Dim app_l01 As New Dictionary, app_l02 As New Dictionary, app_l03 As New Dictionary, app_l04 As New Dictionary
+    Dim app_l05 As New Dictionary, app_l06 As New Dictionary, app_l07 As New Dictionary
+    For i = 2 To UBound(arr) - 1
+        If Len(Replace(arr(i)(1), " ", vbNullString)) > 0 Then app_l01(Format(Replace(arr(i)(0), " ", vbNullString), "0000000000")) = Replace(arr(i)(1), " ", vbNullString)
+        If Len(Replace(arr(i)(2), " ", vbNullString)) > 0 Then app_l02(Format(Replace(arr(i)(0), " ", vbNullString), "0000000000")) = Replace(arr(i)(2), " ", vbNullString)
+        If Len(Replace(arr(i)(3), " ", vbNullString)) > 0 Then app_l03(Format(Replace(arr(i)(0), " ", vbNullString), "0000000000")) = Replace(arr(i)(3), " ", vbNullString)
+        If Len(Replace(arr(i)(4), " ", vbNullString)) > 0 Then app_l04(Format(Replace(arr(i)(0), " ", vbNullString), "0000000000")) = Replace(arr(i)(4), " ", vbNullString)
+        If Len(Replace(arr(i)(5), " ", vbNullString)) > 0 Then app_l05(Format(Replace(arr(i)(0), " ", vbNullString), "0000000000")) = Replace(arr(i)(5), " ", vbNullString)
+        If Len(Replace(arr(i)(6), " ", vbNullString)) > 0 Then app_l06(Format(Replace(arr(i)(0), " ", vbNullString), "0000000000")) = Replace(arr(i)(6), " ", vbNullString)
+        If Len(Replace(arr(i)(7), " ", vbNullString)) > 0 Then app_l07(Format(Replace(arr(i)(0), " ", vbNullString), "0000000000")) = Replace(arr(i)(7), " ", vbNullString)
+    Next i
+   
+    'carga los diccionarios con los valores de aprobacion
+    sh.Cells(pr, 1) = "carga dic niveles de aprob - " & Now()
+    pr = pr + 1
+    Dim amm_l01 As New Dictionary, amm_l02 As New Dictionary, amm_l03 As New Dictionary, amm_l04 As New Dictionary, amm_l05 As New Dictionary, _
+        amm_l06 As New Dictionary, amm_l07 As New Dictionary
+    archivo = "Approval_Amount00.txt"
+    arr = read_file(ruta, archivo, 1, 2)
+    For i = 2 To UBound(arr)
+        amm_l01(arr(i)(0)) = 0
+        amm_l02(arr(i)(0)) = arr(i)(1)
+        amm_l03(arr(i)(0)) = arr(i)(2)
+        amm_l04(arr(i)(0)) = arr(i)(3)
+        amm_l05(arr(i)(0)) = arr(i)(4)
+        amm_l06(arr(i)(0)) = arr(i)(5)
+        amm_l07(arr(i)(0)) = arr(i)(6)
+    Next i
+   
+    'leer centros de costos
+    sh.Cells(pr, 1) = "leer cecos - " & Now()
+    pr = pr + 1
+    Dim ceco As Variant
+    archivo = "costcenter.txt"
+    ceco = read_file(ruta, archivo, 1, 6)
+    
+    'leer wbs
+    sh.Cells(pr, 1) = "leer wbs - " & Now()
+    pr = pr + 1
+    Dim wbs As Variant
+    archivo = "PRPS-WBS.txt"
+    wbs = read_file(ruta, archivo, 1, 0) 'cambiar de 3,4 por 1,0 para la nueva version
+    
+    'leer ordenes
+    sh.Cells(pr, 1) = " leer ordenes - " & Now()
+    pr = pr + 1
+    Dim io As Variant
+    archivo = "aufk-internalorder.txt"
+    io = read_file(ruta, archivo, 3, 4)
+       
+'comenzar la carga de nuevos archivos")
+
+    ' archivo 01
+    sh.Cells(pr, 1) = "helper 1 - " & Now()
+    pr = pr + 1
+    archivo = "Helper_file_L01.csv"
+    Call write_new_files(ruta, archivo, ceco, io, wbs, app_l01, amm_l01, 1)
+    
+    ' archivo 02
+    sh.Cells(pr, 1) = "helper 2 - " & Now()
+    pr = pr + 1
+    archivo = "Helper_file_L02.csv"
+    Call write_new_files(ruta, archivo, ceco, io, wbs, app_l02, amm_l02, 2)
+    
+    ' archivo 03
+    sh.Cells(pr, 1) = "helper 3 - " & Now()
+    pr = pr + 1
+    archivo = "Helper_file_L03.csv"
+    Call write_new_files(ruta, archivo, ceco, io, wbs, app_l03, amm_l03, 3)
+    
+    ' archivo 04
+    sh.Cells(pr, 1) = "helper 4 - " & Now()
+    pr = pr + 1
+    archivo = "Helper_file_L04.csv"
+    Call write_new_files(ruta, archivo, ceco, io, wbs, app_l04, amm_l04, 4)
+    
+    ' archivo 05
+    sh.Cells(pr, 1) = "helper 5 - " & Now()
+    pr = pr + 1
+    archivo = "Helper_file_L05.csv"
+    Call write_new_files(ruta, archivo, ceco, io, wbs, app_l05, amm_l05, 5)
+    
+    ' archivo 06
+    sh.Cells(pr, 1) = "helper 6 - " & Now()
+    pr = pr + 1
+    archivo = "Helper_file_L06.csv"
+    Call write_new_files(ruta, archivo, ceco, io, wbs, app_l06, amm_l06, 6)
+    
+    ' archivo 07
+    sh.Cells(pr, 1) = "helper 7 - " & Now()
+    pr = pr + 1
+    archivo = "Helper_file_L07.csv"
+    Call write_new_files(ruta, archivo, ceco, io, wbs, app_l07, amm_l07, 7)
+    
+'restaurar recursos")
+    Call TurnOn
+
+sh.Cells(pr, 1) = "fin - " & Now()
+pr = pr + 1
+
+Exit Sub
+
+err:
+sh.Cells(1, 1) = "Error"
+
+End Sub
+
+Private Function read_file(path As String, archivo As String, tipo As Long, filas As Long) As Variant
+    
+    ' tipo: 1 "," - 2 Tab - 3 "|" --- filas es el valor donde comienzan los datos que interesan guardar, sin header
+    
+    Dim i As Long, dummy_Var As String, arra() As Variant
+    
+    Open path & archivo For Input As #1
+    
+    If tipo = 1 Then
+        If filas <> 0 Then
+            For i = 1 To filas - 1
+                Line Input #1, dummy_Var
+            Next i
+        End If
+        i = 1
+        Do Until EOF(1)
+            Line Input #1, dummy_Var
+            dummy_Var = Replace(dummy_Var, Chr(34), "")
+            ReDim Preserve arra(0 To i)
+            arra(i) = Split(dummy_Var, ",")
+            i = i + 1
+        Loop
+
+    ElseIf tipo = 2 Then
+        For i = 1 To filas - 1
+            Line Input #1, dummy_Var
+        Next i
+        i = 1
+        Do Until EOF(1)
+            Line Input #1, dummy_Var
+            dummy_Var = Replace(dummy_Var, Chr(34), "")
+            ReDim Preserve arra(0 To i)
+            arra(i) = Split(dummy_Var, vbTab)
+            i = i + 1
+        Loop
+    
+    ElseIf tipo = 3 Then
+        For i = 1 To filas - 1
+            Line Input #1, dummy_Var
+        Next i
+        i = 1
+        Do Until EOF(1)
+            Line Input #1, dummy_Var
+            dummy_Var = Replace(dummy_Var, Chr(34), vbNullString)
+            dummy_Var = Replace(dummy_Var, Chr(32), vbNullString)
+            ReDim Preserve arra(0 To i)
+            If Left$(dummy_Var, 1) = "-" Then Exit Do
+            arra(i) = Split(Right$(dummy_Var, Len(dummy_Var) - 1), "|")
+            'el if agregado es porque cuando se usa "|" la ultima linea tiene "----" y da error cuando intenta usarla
+            i = i + 1
+        Loop
+        
+    End If
+    
+    read_file = arra
+    Close #1
+    
+End Function
+
+Sub write_new_files(ruta As String, archivo As String, ceco As Variant, io As Variant, wbs As Variant, app_l As Dictionary, amm_l As Dictionary, l As Integer)
+       
+       Dim j As Long, aprobador As String
+       Open ruta & archivo For Output As #1
+       Print #1, "WBSElement,InternalOrder,AccountCategory,CostCenter,ApproxAmountInBaseCurrency,User,Required,Tooltip"
+              
+        'agregar nuevos ceco")
+        For j = 1 To UBound(ceco)
+            If ceco(j)(1) <> "" And amm_l(ceco(j)(1)) <> "xx" And amm_l(ceco(j)(1)) <> "" Then
+                If app_l(ceco(j)(0)) <> "" Then aprobador = app_l(ceco(j)(0)) Else aprobador = "NotFound"   'If app_l.Exists(ceco(j)(0)) Then
+                Print #1, "*,*,K," & ceco(j)(0) & "," & amm_l(ceco(j)(1)) & "," & aprobador & ",TRUE,L" & l & " CC"
+            End If
+        Next j
+
+        'agregar nuevos io")
+        For j = 1 To UBound(io) - 1
+            If io(j)(2) <> "" And amm_l(io(j)(1)) <> "xx" And amm_l(io(j)(1)) <> "" Then 'verifica que exista dato en el ceco responsable
+                If app_l(io(j)(2)) <> "" Then aprobador = app_l(io(j)(2)) Else aprobador = "NotFound"
+                Print #1, "*," & Format(io(j)(0), "000000000000") & ",F,*," & amm_l(io(j)(1)) & "," & aprobador & ",TRUE,L" & l & " IO"
+            End If
+        Next j
+
+        'agregar nuevos wbs")
+        For j = 2 To UBound(wbs) - 1
+            If wbs(j)(2) <> "" And amm_l(wbs(j)(1)) <> "xx" And amm_l(wbs(j)(1)) <> "" Then
+                If app_l(wbs(j)(2)) <> "" Then aprobador = app_l(wbs(j)(2)) Else aprobador = "NotFound"
+                Print #1, Replace(wbs(j)(0), ".", vbNullString) & ",*,P,*," & amm_l(wbs(j)(1)) & "," & aprobador & ",TRUE,L" & l & " WBS"
+                Print #1, Replace(wbs(j)(0), ".", vbNullString) & ",*,A,*," & amm_l(wbs(j)(1)) & "," & aprobador & ",TRUE,L" & l & " WBS"
+            End If
+        Next j
+        
+    Close #1
+
+End Sub
+
+Private Sub TurnOff()
+    Application.Calculation = xlCalculationManual
+    Application.DisplayStatusBar = False
+    Application.EnableEvents = False
+    Application.ScreenUpdating = False
+End Sub
+
+Private Sub TurnOn()
+    Application.Calculation = xlCalculationAutomatic
+    Application.DisplayStatusBar = True
+    Application.EnableEvents = True
+    Application.ScreenUpdating = True
+End Sub
+
+
+Sub ss()
+Dim st As String, sta As String
+st = ""
+sta = Replace(st, " ", vbNullString)
+Debug.Print Len(sta)
+End Sub
