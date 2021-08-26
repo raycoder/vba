@@ -1,0 +1,97 @@
+' The following code should be put in a new code module
+' Requires "Microsoft Internet Controls" and "Microsoft HTML Object Library" References
+Sub Main()
+Dim Browser As InternetExplorer
+Dim Document As HTMLDocument
+Dim Element As IHTMLElement
+Dim Elements As IHTMLElementCollection
+Dim Child As IHTMLElement
+Dim Children  As IHTMLElementCollection
+Dim Row As Integer
+Dim Column As Integer
+Row = 1
+Set Browser = New InternetExplorer
+Browser.Navigate "www.bmo.com/home/personal/banking/rates/mortgages"
+Do While Browser.Busy And Not Browser.ReadyState = READYSTATE_COMPLETE
+    DoEvents
+Loop
+Set Document = Browser.Document
+Set Elements = Document.getElementsByTagName("table")(0).getElementsByTagName("tr")
+Debug.Print Elements.Length
+For Each Element In Elements
+    Column = 1
+    'Dim Children As IHTMLElementCollection
+    'Dim Child As IHTMLElement
+    Set Children = Element.getElementsByTagName("td")
+    For Each Child In Children
+        ThisWorkbook.Worksheets("Sheet1").Cells(Row, Column).Value = Child.innerText
+        Column = Column + 1
+    Next Child
+    Row = Row + 1
+Next Element
+End Sub
+
+#################################################################################################
+#para un dato con ID especifico
+Set allRowOfData = appIE.document.getElementById("pair_8907")
+
+#################################################################################################
+Option Explicit
+Public Sub GetRates()
+    Dim html As HTMLDocument, hTable As HTMLTable '<== Tools > References > Microsoft HTML Object Library
+    
+    Set html = New HTMLDocument
+      
+    With CreateObject("MSXML2.XMLHTTP")
+        .Open "GET", "https://uk.investing.com/rates-bonds/financial-futures", False
+        .setRequestHeader "If-Modified-Since", "Sat, 1 Jan 2000 00:00:00 GMT" 'to deal with potential caching
+        .send
+        html.body.innerHTML = .responseText
+    End With
+    
+    Application.ScreenUpdating = False
+    
+    Set hTable = html.getElementById("cr1")
+    WriteTable hTable, 1, ThisWorkbook.Worksheets("Sheet1")
+    
+    Application.ScreenUpdating = True
+End Sub
+
+Public Sub WriteTable(ByVal hTable As HTMLTable, Optional ByVal startRow As Long = 1, Optional ByVal ws As Worksheet)
+    Dim tSection As Object, tRow As Object, tCell As Object, tr As Object, td As Object, r As Long, C As Long, tBody As Object
+    r = startRow: If ws Is Nothing Then Set ws = ActiveSheet
+    With ws
+        Dim headers As Object, header As Object, columnCounter As Long
+        Set headers = hTable.getElementsByTagName("th")
+        For Each header In headers
+            columnCounter = columnCounter + 1
+            Select Case columnCounter
+            Case 2
+                .Cells(startRow, 1) = header.innerText
+            Case 8
+                .Cells(startRow, 2) = header.innerText
+            End Select
+        Next header
+        startRow = startRow + 1
+        Set tBody = hTable.getElementsByTagName("tbody")
+        For Each tSection In tBody
+            Set tRow = tSection.getElementsByTagName("tr")
+            For Each tr In tRow
+                r = r + 1
+                Set tCell = tr.getElementsByTagName("td")
+                C = 1
+                For Each td In tCell
+                    Select Case C
+                    Case 2
+                        .Cells(r, 1).Value = td.innerText
+                    Case 8
+                        .Cells(r, 2).Value = td.innerText
+                    End Select
+                    C = C + 1
+                Next td
+            Next tr
+        Next tSection
+    End With
+End Sub
+
+#################################################################################################
